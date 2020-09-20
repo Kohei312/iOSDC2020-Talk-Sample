@@ -29,7 +29,7 @@ env:
 
 jobs:
   test:
-    runs-on: macS-latest
+    runs-on: macOS-latest
     env:
        MINT_PATH: mint/lib
        MINT_LINK_PATH: mint/bin

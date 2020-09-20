@@ -2,8 +2,8 @@
 
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the main branch
+## forkしたリポジトリについては、fork先のリポジトリのみに適用される
+
 # トリガーを設定する
 ## 以下の例では、mainブランチ・developブランチのいずれかにプッシュしたとき
 ## またはdevelopブランチにプルリクがあったときに実行される
@@ -34,6 +34,7 @@ jobs:
        MINT_PATH: mint/lib
        MINT_LINK_PATH: mint/bin
     
+    ## usesで、フォルダを指定している
     steps:
      - uses: actions/checkout@v2
      
@@ -45,6 +46,8 @@ jobs:
         restore-keys: ${{runner.os}} 
         
     # Bundlerで管理しているライブラリのインストール
+    ## make install-bundlerで、キャッシュを自動更新している
+    ## make を使用する代わりに、fastlaneを使用するのも有効
      - name: Install Bundled Gems
        run: make install-bundler
 

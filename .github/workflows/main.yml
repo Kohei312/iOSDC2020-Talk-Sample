@@ -1,0 +1,79 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+# トリガーを設定する
+## 以下の例では、mainブランチ・developブランチのいずれかにプッシュしたとき
+## またはdevelopブランチにプルリクがあったときに実行される
+## README.mdを更新したときは除外
+on:
+  push:
+    branches: 
+      - main
+      - develop
+    paths-ignore:
+      - Docs/**
+      - README.md
+  pull_request:
+    branches:
+      - develop
+    paths-ignore:
+      - Docs/**
+      - README.md
+
+env:
+  DEVELOPER_DIR: /Applecation/Xcode_11.6.app/Contents/Developer
+
+
+jobs:
+  test:
+    runs-on: macS-latest
+    env:
+       MINT_PATH: mint/lib
+       MINT_LINK_PATH: mint/bin
+    
+    steps:
+     - uses: actions/checkout@v2
+     
+     - name: Cache multiple paths
+       uses: actions/cache@v2
+       with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+        restore-keys: ${{runner.os}} 
+        
+    # Bundlerで管理しているライブラリのインストール
+     - name: Install Bundled Gems
+       run: make install-bundler
+
+     # Mintのインストール
+     - name: Install Mint
+       run: brew install mint
+
+     # Mintで管理しているライブラリのキャッシュ
+     - name: Cache Mint packages
+       uses: actions/cache@v2
+       with:
+         path: mint
+         key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
+         restore-keys: |
+           ${{ runner.os }}-mint-
+
+     # CocoaPodsで管理しているライブラリのキャッシュ
+     - name: Cache Pods
+       uses: actions/cache@v2
+       with:
+         path: Pods
+         key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+         restore-keys: |
+           ${{ runner.os }}-pods-
+
+     # プロジェクトファイルの生成、CocoaPodsで管理しているライブラリのインストール
+     - name: Generate Xcode project and install Pods
+       run: make generate-xcodeproj
+
+     # ビルド
+     - name: Xcode build
+       run: make build-debug
